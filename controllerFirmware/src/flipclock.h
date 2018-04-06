@@ -35,15 +35,16 @@ class FlipClock : public ScreenProgram {
       syncTime = millis();
       Serial.println("Synchronized clock");  
       NTP->printDateTime(dateTime);
+      srand(dateTime.unixtime);
     }
 
     void start() {}
     void stop() {}
 
-    void loop() {
+    void loop(char* input) {
       char time[10];
       sprintf(time, "%02u%c%02u", dateTime.hour, dateTime.second%2 ? ':' : ' ', dateTime.minute);
-      sign->write(time);
+      sign->write(time);sign->flip();
       // sign->screenToUart();
       while(syncTime - millis() >= 1000) {
         syncTime+=1000;

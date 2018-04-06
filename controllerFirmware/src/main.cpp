@@ -5,6 +5,7 @@
 #include "flipscreen.h"
 #include "flipmenu.h"
 #include "flipsilent.h"
+#include "fliptetris.h"
 #include "flipclock.h"
 #include "screenprogrammanager.h"
 
@@ -40,12 +41,12 @@ void setupWifi() {
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
   
-  // if (!MDNS.begin("flipdot")) {
-  //     Serial.println("Error setting up MDNS responder!");
-  // }
-  // MDNS.addService("ctrl", "udp", 1234);
+  if (!MDNS.begin("flipdot")) {
+      Serial.println("Error setting up MDNS responder!");
+  }
+  MDNS.addService("ctrl", "udp", 12345);
 
-  // udp.begin(1234);
+  udp.begin(12345);
 }
 
 void setup() {
@@ -60,29 +61,34 @@ void setup() {
   screenManager = ScreenProgramManager::getInstance();
 
   // Create the menu
-  // std::map<std::string, ScreenProgram*> menu;
-  // menu[std::string("Item A")] = new FlipSilent(sign);
-  // menu[std::string("Item B")] = new FlipClock(sign);
-  // menu[std::string("Item C")] = new FlipClock(sign);
-  // screenManager->push(new FlipMenu(sign, menu));
-  screenManager->push(new FlipClock(sign));
-  // flipClock = new FlipClock(sign);
-  sign->write("READY");
+  std::map<std::string, ScreenProgram*> menu;
+  menu[std::string("Silent")] = new FlipSilent(sign);
+  menu[std::string("Clock")] = new FlipClock(sign);
+  menu[std::string("Tetris")] = new FlipTetris(sign);
+
+
+  sign->write("READY");sign->flip();
   sign->clear(BLACK);
+  screenManager->push(new FlipMenu(sign, menu));
+  // screenManager->push(new FlipClock(sign));
+  // flipClock = new FlipClock(sign);
 }
 
 void loop() {
-  screenManager->loop();
+  char* input = NULL;
 
-  // static char packetBuffer[256];
-  // int packetSize = udp.parsePacket();
-  // if (packetSize) {
-  //   int len = udp.read(packetBuffer, 255);
-  //   if (len > 0) {
-  //     packetBuffer[len] = '\0';
-  //   }
-  // }
-  // screenManager->loop(packetBuffer);
+  static char packetBuffer[256];
+  int packetSize = udp.parsePacket();
+  if (packetSize) {
+    int len = udp.read(packetBuffer, 255);
+    if (len > 0) {
+      packetBuffer[len] = '\0';
+      Serial.println(packetBuffer);
+      input = packetBuffer;
+    }
+  }
+
+  screenManager->loop(input);
   // packetBuffer[0] = '\0';
   // Serial.println("WHITE");
   // sign->clear(WHITE);

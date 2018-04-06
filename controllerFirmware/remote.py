@@ -1,13 +1,37 @@
+#!/usr/bin/python3
 import socket
-# print socket.gethostbyname('flipdot.local')
-UDP_IP = "192.168.0.27"
-UDP_PORT = 1234
-MESSAGE = "Hello, World!"
+import getch
 
-print "UDP target IP:", UDP_IP
-print "UDP target port:", UDP_PORT
-print "message:", MESSAGE
+UDP_IP = socket.gethostbyname("flipdot.local")
+UDP_PORT = 12345
 
-sock = socket.socket(socket.AF_INET, # Internet
-                     socket.SOCK_DGRAM) # UDP
-sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
+def command(msg):
+    sock = socket.socket(socket.AF_INET, # Internet
+                         socket.SOCK_DGRAM) # UDP
+    sock.sendto(msg.encode(), (UDP_IP, UDP_PORT))
+
+def main():
+    running = True
+    while running:
+        while True:
+            k = getch.getch()
+            if k != '':
+                break
+        # print(k)        
+        if k == 'Q':
+            running = False
+        if k =='\x1b' and getch.getch() == '[':
+            k = getch.getch()
+            if k == 'A':
+                command("up")
+            elif k =='B':
+                command("down")
+            elif k=='C':
+                command("right")
+            elif k=='D':
+                command("left")
+        else:
+            command(k)
+
+if __name__=='__main__':
+    main()

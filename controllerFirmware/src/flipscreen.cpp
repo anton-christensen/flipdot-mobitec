@@ -34,14 +34,27 @@ FlipScreen::FlipScreen() {
   // clear the screen
   for(int x = 0; x < PANEL_WIDTH; x++) {
     for(int y = 0; y < PANEL_HEIGHT; y++) {
-      screen[x][y] = 0xFF;
+      screenState[x][y] = 0xFF;
+      screenBuffer[x][y] = BLACK;
+    }
+  }
+}
+
+void FlipScreen::flip() {
+  for(int x = 0; x < PANEL_WIDTH; x++) {
+    for(int y = 0; y < PANEL_HEIGHT; y++) {
+      _setDot(x,y,screenBuffer[x][y]);
     }
   }
 }
 
 void FlipScreen::putPixel(unsigned int x, unsigned int y, unsigned char color) {
-  if(x >= PANEL_WIDTH || y >= PANEL_HEIGHT || color > 1 || this->screen[x][y] == color) return;
-  this->screen[x][y] = color;
+  if(x < 0 || y < 0 || x >= PANEL_WIDTH || y >= PANEL_HEIGHT) return;
+  screenBuffer[x][y] = color;
+}
+void FlipScreen::_setDot(unsigned int x, unsigned int y, unsigned char color) {
+  if(x < 0 || y < 0 || x >= PANEL_WIDTH || y >= PANEL_HEIGHT || color > 1 || this->screenState[x][y] == color) return;
+  this->screenState[x][y] = color;
 
   int panel = x/28;
   x %= 28;
@@ -50,19 +63,24 @@ void FlipScreen::putPixel(unsigned int x, unsigned int y, unsigned char color) {
     _digitalWrite(this->row_addr_pins[i], index_to_bitpattern_map[y]&(1<<i));
     _digitalWrite(this->col_addr_pins[i], index_to_bitpattern_map[x]&(1<<i));
   }
-
   _digitalWrite(this->color_pin, color);
 
   _digitalWrite(this->panel_triggers[panel], HIGH);
-  delay(1); // TODO: this may be more time than required
+  delay(3); // TODO: this may be more time than required
   _digitalWrite(this->panel_triggers[panel], LOW);
-  delay(1); // TODO: this may be more time than required
+  delay(3); // TODO: this may be more time than required
+  // delayMicroseconds(1500); // TODO: this may be more time than required
+  _digitalWrite(this->panel_triggers[panel], HIGH);
+  delay(3); // TODO: this may be more time than required
+  _digitalWrite(this->panel_triggers[panel], LOW);
+  delay(3); // TODO: this may be more time than required
+  // delayMicroseconds(1500); // TODO: this may be more time than required
 }
 
 void FlipScreen::fillRect(unsigned int x1, unsigned int x2, unsigned int y1, unsigned int y2, unsigned char color) {
-  for(; y1 <= y2; y1++) {
-    for(; x1 <= x2; x1++) {
-      this->putPixel(x1,y1, color);
+  for(int y = y1; y <= y2; y++) {
+    for(int x = x1; x <= x2; x++) {
+      this->putPixel(x,y, color);
     }
   }
 }
@@ -101,7 +119,7 @@ void FlipScreen::screenToUart() {
   Serial.println();
   for(int y = 0; y < PANEL_HEIGHT; y++) {
     for(int x = 0; x < PANEL_WIDTH; x++) {
-      Serial.print(this->screen[x][y] ? '.' : '*');
+      Serial.print(this->screenState[x][y] ? '.' : '*');
     }
     Serial.println();
   }

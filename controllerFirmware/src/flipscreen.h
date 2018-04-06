@@ -18,7 +18,8 @@ class FlipScreen {
   private:
     unsigned char index_to_bitpattern_map[28];
     unsigned char gpiostate[40];
-    unsigned char screen[PANEL_WIDTH][PANEL_HEIGHT];
+    unsigned char screenState[PANEL_WIDTH][PANEL_HEIGHT] PROGMEM;
+    unsigned char screenBuffer[PANEL_WIDTH][PANEL_HEIGHT] PROGMEM;
     const unsigned char panel_triggers[4] = {5,18,19,21};
     const unsigned char row_addr_pins[5] =  {13,12,14,27,26};
     const unsigned char col_addr_pins[5] =  {15,2,4,16,17};
@@ -29,6 +30,8 @@ class FlipScreen {
 
   public:
     FlipScreen();
+    void flip();
+    void _setDot(unsigned int x, unsigned int y, unsigned char color);
     void putPixel(unsigned int x, unsigned int y, unsigned char color);
     void fillRect(unsigned int x1, unsigned int x2, unsigned int y1, unsigned int y2, unsigned char color);
     void clear(unsigned char color = BLACK);
@@ -39,7 +42,6 @@ class FlipScreen {
 
 
 // fonts - https://github.com/powerline/fonts/tree/master/Terminus/BDF
-
 // const unsigned short font[1][18] = { // each char is 10 wide
 const unsigned short font[127][18] PROGMEM = { // each char is 10 wide
 {0x0000, // [0] - uni25AE 

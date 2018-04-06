@@ -27,13 +27,16 @@ class ScreenProgramManager {
     void pop() {
       if(programStack.empty()) return;
       programStack.top()->stop();
-      delete programStack.top();
+      // delete programStack.top();
       programStack.pop();
       programStack.top()->start();
     }
 
-    void loop() {
-      programStack.top()->loop();
+    void loop(char* input) {
+      if(input != NULL && strcmp("q", input) == 0)
+        this->pop();
+      else
+        programStack.top()->loop(input);
     }
 };
 

@@ -9,11 +9,12 @@ class FlipSilent : public ScreenProgram {
 
     void start() {
       sign->clear();
+      sign->flip();
     }
 
     void stop() {}
 
-    void loop() {}
+    void loop(char* input) {}
 };
 
 #endif
