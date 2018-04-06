@@ -66,15 +66,10 @@ void FlipScreen::_setDot(unsigned int x, unsigned int y, unsigned char color) {
   _digitalWrite(this->color_pin, color);
 
   _digitalWrite(this->panel_triggers[panel], HIGH);
-  delay(3); // TODO: this may be more time than required
+  delay(2); // TODO: this may be more time than required
   _digitalWrite(this->panel_triggers[panel], LOW);
-  delay(3); // TODO: this may be more time than required
-  // delayMicroseconds(1500); // TODO: this may be more time than required
-  _digitalWrite(this->panel_triggers[panel], HIGH);
-  delay(3); // TODO: this may be more time than required
-  _digitalWrite(this->panel_triggers[panel], LOW);
-  delay(3); // TODO: this may be more time than required
-  // delayMicroseconds(1500); // TODO: this may be more time than required
+  delay(2); // TODO: this may be more time than required
+  // delayMicroseconds(500); // TODO: this may be more time than required
 }
 
 void FlipScreen::fillRect(unsigned int x1, unsigned int x2, unsigned int y1, unsigned int y2, unsigned char color) {
