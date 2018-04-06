@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name 74hc)(type Legacy)(uri ${KICAD_SYMBOL_DIR}/74hc.lib)(options "")(descr ""))
+  (lib (name open-project)(type Legacy)(uri ${KICAD_SYMBOL_DIR}/open-project.lib)(options "")(descr ""))
+)

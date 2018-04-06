@@ -1,0 +1,104 @@
+{
+	"build_systems":
+	[
+		{
+			"cmd":
+			[
+				"platformio",
+				"-f", "-c", "sublimetext",
+				"run"
+			],
+			"name": "PlatformIO",
+			"variants":
+			[
+				{
+					"cmd":
+					[
+						"platformio",
+						"-f", "-c", "sublimetext",
+						"run"
+					],
+					"name": "Build"
+				},
+				{
+					"cmd":
+					[
+						"platformio",
+						"-f", "-c", "sublimetext",
+						"run",
+						"--target",
+						"clean"
+					],
+					"name": "Clean"
+				},
+				{
+					"cmd":
+					[
+						"platformio",
+						"-f", "-c", "sublimetext",
+						"test"
+					],
+					"name": "Test"
+				},
+				{
+					"cmd":
+					[
+						"platformio",
+						"-f", "-c", "sublimetext",
+						"run",
+						"--target",
+						"upload"
+					],
+					"name": "Upload"
+				},
+				{
+					"cmd":
+					[
+						"platformio",
+						"-f", "-c", "sublimetext",
+						"run",
+						"--target",
+						"program"
+					],
+					"name": "Upload using Programmer"
+				},
+				{
+					"cmd":
+					[
+						"platformio",
+						"-f", "-c", "sublimetext",
+						"run",
+						"--target",
+						"uploadfs"
+					],
+					"name": "Upload SPIFFS image"
+				},
+				{
+					"cmd":
+					[
+						"platformio",
+						"-f", "-c", "sublimetext",
+						"update"
+					],
+					"name": "Update platforms and libraries"
+				}
+			],
+			"working_dir": "${project_path:${folder}}",
+			"selector": "source.c, source.c++",
+			"path": "/tmp/ocrocis/bin:/tmp/ocrocis/bin:/opt/esp-open-sdk/xtensa-lx106-elf/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/lib/jvm/default/bin:/opt/opencascade/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/anton/.files/scripts:/opt/microchip/xc32/v1.44/bin/bin:/opt/anaconda/bin:/home/anton/Android/Sdk/tools:/opt/esp-open-sdk/xtensa-lx106-elf/bin:/home/anton/.files/scripts:/opt/microchip/xc32/v1.44/bin/bin:/opt/anaconda/bin:/home/anton/Android/Sdk/tools:/opt/esp-open-sdk/xtensa-lx106-elf/bin"
+		}
+	],
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+    "settings":
+    {
+         "sublimegdb_workingdir": "/home/anton/projects/busskiltController/controller",
+         "sublimegdb_exec_cmd": "-exec-continue",
+         "sublimegdb_commandline": "/usr/bin/platformio -f -c sublimetext debug --interface=gdb --interpreter=mi -x .pioinit"
+
+    }
+}
