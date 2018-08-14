@@ -12,7 +12,10 @@
 #define WHITE 0
 
 #define PANEL_WIDTH 112
-#define PANEL_HEIGHT 16
+#define PANEL_HEIGHT 20
+// Yello config
+// #define PANEL_WIDTH 112
+// #define PANEL_HEIGHT 16
 
 class FlipScreen {
   private:
@@ -35,8 +38,8 @@ class FlipScreen {
     void putPixel(unsigned int x, unsigned int y, unsigned char color);
     void fillRect(unsigned int x1, unsigned int x2, unsigned int y1, unsigned int y2, unsigned char color);
     void clear(unsigned char color = BLACK);
-    void putChar(unsigned int x, unsigned int y, char c);
-    void write(const char* str);
+    void putChar(unsigned int x, unsigned int y, char c, unsigned char inverted = false);
+    void write(const char* str, unsigned char inverted = false);
     void screenToUart();
 };
 

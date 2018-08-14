@@ -66,10 +66,9 @@ void FlipScreen::_setDot(unsigned int x, unsigned int y, unsigned char color) {
   _digitalWrite(this->color_pin, color);
 
   _digitalWrite(this->panel_triggers[panel], HIGH);
-  delay(2); // TODO: this may be more time than required
+  delayMicroseconds(200); 
   _digitalWrite(this->panel_triggers[panel], LOW);
-  delay(2); // TODO: this may be more time than required
-  // delayMicroseconds(500); // TODO: this may be more time than required
+  delayMicroseconds(5);
 }
 
 void FlipScreen::fillRect(unsigned int x1, unsigned int x2, unsigned int y1, unsigned int y2, unsigned char color) {
@@ -88,15 +87,18 @@ void FlipScreen::clear(unsigned char color /*= BLACK*/ ) {
   }
 }
 
-void FlipScreen::putChar(unsigned int x, unsigned int y, char c) {
+void FlipScreen::putChar(unsigned int x, unsigned int y, char c, unsigned char inverted) {
   for(int _x = 0; _x < 10; _x++) {
     for(int _y = 0; _y < 18; _y++) {
-      this->putPixel(x+_x, y+_y, (font[c][_y]&((1<<16)>>_x)) ? WHITE : BLACK);
+      if(!inverted)
+        this->putPixel(x+_x, y+_y, (font[c][_y]&((1<<16)>>_x)) ? WHITE : BLACK);
+      else
+        this->putPixel(x+_x, y+_y, (font[c][_y]&((1<<16)>>_x)) ? BLACK : WHITE);
     }
   }
 }
 
-void FlipScreen::write(const char* str) {
+void FlipScreen::write(const char* str, unsigned char inverted) {
   int strlen = 0;
   unsigned int index = 0;
   while(str[strlen] != '\0') strlen++;
@@ -105,7 +107,7 @@ void FlipScreen::write(const char* str) {
   
   char c;
   while((c = str[index++]) != '\0') {
-    this->putChar(x, -2, c);
+    this->putChar(x, 0, c, inverted);
     x += 10;
   }
 }

@@ -57,6 +57,7 @@ void setup() {
   sign = new FlipScreen();
   sign->clear(BLACK);
 
+
   // retrieve the screenManager instance
   screenManager = ScreenProgramManager::getInstance();
 
