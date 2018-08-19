@@ -52,6 +52,10 @@ class FlipMenu : public ScreenProgram {
         }
       }
     }
+
+    void setProgram(char* name) {
+      ScreenProgramManager::getInstance()->push(menuItems[name]);
+    }
 };
 
 #endif

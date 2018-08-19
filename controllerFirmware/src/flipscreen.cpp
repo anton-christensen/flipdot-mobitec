@@ -31,6 +31,9 @@ FlipScreen::FlipScreen() {
     pinMode(this->col_addr_pins[i], OUTPUT);
   }
 
+  pinMode(backlight_pin, OUTPUT);
+  digitalWrite(backlight_pin, backlight_state);
+
   // clear the screen
   for(int x = 0; x < PANEL_WIDTH; x++) {
     for(int y = 0; y < PANEL_HEIGHT; y++) {
@@ -66,9 +69,9 @@ void FlipScreen::_setDot(unsigned int x, unsigned int y, unsigned char color) {
   _digitalWrite(this->color_pin, color);
 
   _digitalWrite(this->panel_triggers[panel], HIGH);
-  delayMicroseconds(200); 
+  delayMicroseconds(350); 
   _digitalWrite(this->panel_triggers[panel], LOW);
-  delayMicroseconds(5);
+  delayMicroseconds(10);
 }
 
 void FlipScreen::fillRect(unsigned int x1, unsigned int x2, unsigned int y1, unsigned int y2, unsigned char color) {
@@ -110,6 +113,15 @@ void FlipScreen::write(const char* str, unsigned char inverted) {
     this->putChar(x, 0, c, inverted);
     x += 10;
   }
+}
+
+void FlipScreen::setBacklight(bool state) {
+  backlight_state = state;
+  digitalWrite(backlight_pin, state);
+}
+
+bool FlipScreen::getBacklight() {
+  return backlight_state;
 }
 
 void FlipScreen::screenToUart() {

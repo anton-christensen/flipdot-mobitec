@@ -1,7 +1,7 @@
 #ifndef __SCREEN_PROGRAM_MANAGER__
 #define __SCREEN_PROGRAM_MANAGER__
 
-#include "screenprogram.h"
+#include "programs/screenprogram.h"
 #include <stack>
 
 class ScreenProgramManager {
@@ -30,6 +30,18 @@ class ScreenProgramManager {
       // delete programStack.top();
       programStack.pop();
       programStack.top()->start();
+    }
+
+    void pause(bool pause=false) {
+      if(pause)
+        programStack.top()->stop();
+      else
+        programStack.top()->start();
+    }
+
+    ScreenProgram* peek() {
+      if(programStack.empty()) return NULL;
+      return programStack.top();
     }
 
     void loop(char* input) {

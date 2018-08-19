@@ -11,9 +11,12 @@
 #define BLACK 1
 #define WHITE 0
 
+#define ON true
+#define OFF false
+
 #define PANEL_WIDTH 112
 #define PANEL_HEIGHT 20
-// Yello config
+// Yellow config
 // #define PANEL_WIDTH 112
 // #define PANEL_HEIGHT 16
 
@@ -21,12 +24,17 @@ class FlipScreen {
   private:
     unsigned char index_to_bitpattern_map[28];
     unsigned char gpiostate[40];
+    unsigned char backlight_state = ON;
+
     unsigned char screenState[PANEL_WIDTH][PANEL_HEIGHT] PROGMEM;
     unsigned char screenBuffer[PANEL_WIDTH][PANEL_HEIGHT] PROGMEM;
     const unsigned char panel_triggers[4] = {5,18,19,21};
-    const unsigned char row_addr_pins[5] =  {13,12,14,27,26};
-    const unsigned char col_addr_pins[5] =  {15,2,4,16,17};
+    const unsigned char row_addr_pins[5] =  {13,23,14,27,26};
+    // const unsigned char row_addr_pins[5] =  {13,12,14,27,26};
+    const unsigned char col_addr_pins[5] =  {15,22,4,16,17};
+    // const unsigned char col_addr_pins[5] =  {15,2,4,16,17};
     const unsigned char color_pin = 25;
+    const unsigned char backlight_pin = 33;
 
     int index_to_bitpattern(int index);
     void _digitalWrite(unsigned char pin, unsigned char state);
@@ -40,6 +48,8 @@ class FlipScreen {
     void clear(unsigned char color = BLACK);
     void putChar(unsigned int x, unsigned int y, char c, unsigned char inverted = false);
     void write(const char* str, unsigned char inverted = false);
+    void setBacklight(bool state);
+    bool getBacklight();
     void screenToUart();
 };
 
