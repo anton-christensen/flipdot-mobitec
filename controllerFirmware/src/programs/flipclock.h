@@ -4,6 +4,7 @@
 #include "screenprogram.h"
 #include <Arduino.h>
 #include <NTPtimeESP.h>
+#include <WiFi.h>
 
 class FlipClock : public ScreenProgram {
   private:
@@ -27,18 +28,29 @@ class FlipClock : public ScreenProgram {
 
   public:
     FlipClock(FlipScreen* _sign) : ScreenProgram(_sign) {
-      NTP = new NTPtime("0.dk.pool.ntp.org");
-
-      do {
-        dateTime = NTP->getNTPtime(1.0, 1);
-      } while(dateTime.valid == false);
-      syncTime = millis();
-      Serial.println("Synchronized clock");  
-      NTP->printDateTime(dateTime);
-      srand(dateTime.unixtime);
+      sync();
     }
 
-    void start() {}
+    void sync() {
+      if(WiFi.status() != WL_CONNECTED) return;
+      NTP = new NTPtime("0.dk.pool.ntp.org");
+      int retries = 10;
+      do {
+        dateTime = NTP->getNTPtime(1.0, 1);
+      } while(dateTime.valid == false && retries--);
+      if(dateTime.valid) {
+        syncTime = millis();
+        Serial.println("Synchronized clock");  
+        NTP->printDateTime(dateTime);
+        srand(dateTime.unixtime);
+      }
+    }
+
+    void start() {
+      if(syncTime == 0)
+        sync();
+      sign->clear();
+    }
     void stop() {}
 
     void loop(char* input) {

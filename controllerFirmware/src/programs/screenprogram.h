@@ -7,6 +7,9 @@ class ScreenProgram {
     virtual void start() = 0;
     virtual void stop() = 0;
     virtual void loop(char* input) = 0;
+    virtual void redraw() {
+    	sign->redraw();
+    };
 
   protected:
     FlipScreen* sign;

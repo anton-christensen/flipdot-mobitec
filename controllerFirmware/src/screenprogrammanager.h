@@ -47,6 +47,8 @@ class ScreenProgramManager {
     void loop(char* input) {
       if(input != NULL && strcmp("q", input) == 0)
         this->pop();
+      else if(input != NULL && strcmp("r", input) == 0)
+        programStack.top()->redraw();
       else
         programStack.top()->loop(input);
     }
