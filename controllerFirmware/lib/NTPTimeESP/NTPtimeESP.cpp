@@ -223,6 +223,7 @@ unsigned long NTPtime::adjustTimeZone(unsigned long _timeStamp, float _timeZone,
 // if _isDayLightSaving is true, time will be adjusted accordingly
 // Use returned time only after checking "ret.valid" flag
 
+#define DEBUG_ON
 strDateTime NTPtime::getNTPtime(float _timeZone, boolean _DayLightSaving) {
 	int cb;
 	strDateTime _dateTime;

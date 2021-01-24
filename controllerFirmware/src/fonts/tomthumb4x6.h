@@ -860,11 +860,11 @@ const unsigned short font_tom_thumb_4x6[127][7] PROGMEM = { // each char is 4 wi
 },
 {  // [95] - underscore
  4,
+ 0x0000,
+ 0x0000,
+ 0x0000,
+ 0x0000,
  0xE000,
- 0x0000,
- 0x0000,
- 0x0000,
- 0x0000,
  0x0000,
 },
 {  // [96] - grave
@@ -950,11 +950,11 @@ const unsigned short font_tom_thumb_4x6[127][7] PROGMEM = { // each char is 4 wi
 },
 {  // [105] - i
  2,
- 0x4000,
+ 0x8000,
  0x0000,
- 0x4000,
- 0x4000,
- 0x4000,
+ 0x8000,
+ 0x8000,
+ 0x8000,
  0x0000,
 },
 {  // [106] - j
@@ -1049,12 +1049,12 @@ const unsigned short font_tom_thumb_4x6[127][7] PROGMEM = { // each char is 4 wi
 },
 {  // [116] - t
  4,
- 0x0000,
  0x4000,
  0xE000,
  0x4000,
  0x4000,
  0x6000,
+ 0x0000,
 },
 {  // [117] - u
  4,

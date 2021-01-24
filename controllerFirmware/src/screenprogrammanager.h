@@ -17,11 +17,12 @@ class ScreenProgramManager {
       return _inst;
     }
 
-    void push(ScreenProgram* program) {
-      if(!programStack.empty())
+    void push(ScreenProgram* program, bool autostart = true) {
+      if(autostart && !programStack.empty())
         programStack.top()->stop();
       programStack.push(program);
-      programStack.top()->start();
+      if(autostart)
+        programStack.top()->start();
     }
 
     void pop() {
@@ -45,9 +46,9 @@ class ScreenProgramManager {
     }
 
     void loop(char* input) {
-      if(input != NULL && strcmp("q", input) == 0)
+      if(input != NULL && strcmp("quit", input) == 0)
         this->pop();
-      else if(input != NULL && strcmp("r", input) == 0)
+      else if(input != NULL && strcmp("redraw", input) == 0)
         programStack.top()->redraw();
       else
         programStack.top()->loop(input);

@@ -23,9 +23,17 @@ class FlipMenu : public ScreenProgram {
       sign->clear();
       int barHeight = PANEL_HEIGHT/menuItems.size();
       int barStart = barHeight*menuIndex;
-      sign->fillRect(0,1, 0,PANEL_HEIGHT-1, WHITE);
-      sign->fillRect(2, 3, barStart, barStart+barHeight, WHITE);
-      sign->write(current->first.c_str());
+      sign->fillRect(0,2, 0,PANEL_HEIGHT-1, WHITE);
+      sign->fillRect(2, 4, barStart, barStart+barHeight, WHITE);
+      sign->setFont(2);
+
+      if(current != menuItems.begin())
+        sign->write(prev(current)->first.c_str(), 10, 0);
+      sign->write(current->first.c_str(), 10);
+      if(next(current) != menuItems.end())
+        sign->write(next(current)->first.c_str(), 10, 14);
+      
+      sign->setFont(1);
       sign->flip();
     }
 
@@ -53,7 +61,7 @@ class FlipMenu : public ScreenProgram {
       }
     }
 
-    void setProgram(char* name) {
+    void setProgram(const char* name) {
       ScreenProgramManager::getInstance()->push(menuItems[name]);
     }
 };

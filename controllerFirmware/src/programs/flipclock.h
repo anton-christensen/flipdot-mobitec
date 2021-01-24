@@ -2,9 +2,12 @@
 #define __FLIP_CLOCK__
 
 #include "screenprogram.h"
+#include "websocket.h"
+
 #include <Arduino.h>
-#include <NTPtimeESP.h>
+#include <NTPClient.h>
 #include <WiFi.h>
+#include <WiFiUdp.h>
 
 class FlipClock : public ScreenProgram {
   private:
@@ -22,47 +25,56 @@ class FlipClock : public ScreenProgram {
       boolean valid;
     };
      */
-    NTPtime* NTP;
-    strDateTime dateTime;
-    unsigned long syncTime = 0;
+    NTPClient* NTP;
+    WiFiUDP ntpUDP;
 
   public:
     FlipClock(FlipScreen* _sign) : ScreenProgram(_sign) {
-      sync();
-    }
-
-    void sync() {
-      if(WiFi.status() != WL_CONNECTED) return;
-      NTP = new NTPtime("0.dk.pool.ntp.org");
-      int retries = 10;
-      do {
-        dateTime = NTP->getNTPtime(1.0, 1);
-      } while(dateTime.valid == false && retries--);
-      if(dateTime.valid) {
-        syncTime = millis();
-        Serial.println("Synchronized clock");  
-        NTP->printDateTime(dateTime);
-        srand(dateTime.unixtime);
-      }
+      
     }
 
     void start() {
-      if(syncTime == 0)
-        sync();
       sign->clear();
     }
-    void stop() {}
+
+    void stop() {
+    }
 
     void loop(char* input) {
-      char time[10];
-      sprintf(time, "%02u%c%02u", dateTime.hour, dateTime.second%2 ? ':' : ' ', dateTime.minute);
-      sign->write(time);sign->flip();
-      // sign->screenToUart();
-      while(syncTime - millis() >= 1000) {
-        syncTime+=1000;
-        dateTime.unixtime++;
-        NTP->updateTimestamp(&dateTime);
+      static unsigned char initialized = false;
+      if(!initialized && WiFi.status() == WL_CONNECTED) {
+        NTP = new NTPClient(ntpUDP, "dk.pool.ntp.org", 3600*2, 60000);
+        NTP->begin();
+        initialized = true;
+        srand(NTP->getEpochTime());
+      } 
+      else if(!initialized) return;
+
+
+      if(!NTP->update()) {
+        ws_send("NTP update failed");
       }
+
+      // draw seconds indicator
+      sign->fillRect(0,PANEL_WIDTH,PANEL_HEIGHT-1,PANEL_HEIGHT, BLACK);
+      unsigned short secondsCounter = (PANEL_WIDTH/60.0)*NTP->getSeconds();
+      // unsigned short secondsCounter = (PANEL_WIDTH/60.0)*(((NTP->getMilliseconds()-2000) % 60000)/1000.0);
+      
+      if(NTP->getMinutes() % 2) {
+        sign->fillRect(0, secondsCounter, PANEL_HEIGHT-1, PANEL_HEIGHT, WHITE);
+      }
+      else {
+        sign->fillRect(secondsCounter, PANEL_WIDTH, PANEL_HEIGHT-1, PANEL_HEIGHT, WHITE);
+      }
+      sign->flip();
+      
+      // draw time
+      sign->fillRect(0,PANEL_WIDTH,0,PANEL_HEIGHT-1, BLACK);
+      static char time[10];
+      sprintf(time, "%02u%c%02u", NTP->getHours()%24, NTP->getSeconds()%2 ? ':' : ' ', NTP->getMinutes()%60);
+      sign->write(time, -1, -1, WHITE);
+      sign->flip(250);
+
     }
 };
 

@@ -3,6 +3,7 @@
 
 #include "screenprogram.h"
 #include <Arduino.h>
+#include <queue>
 
 class FlipSnake : public ScreenProgram {
   private:
@@ -10,6 +11,9 @@ class FlipSnake : public ScreenProgram {
     bool running;
 
     enum direction{up, down, left, right};
+
+    std::queue<int> inputQueue;
+
 
     int length = 4;
     int direction = right;
@@ -20,6 +24,11 @@ class FlipSnake : public ScreenProgram {
   public:
 
     FlipSnake(FlipScreen* _sign) : ScreenProgram(_sign) {
+		while(!inputQueue.empty()) inputQueue.pop();
+		reset();
+    }
+
+	void reset() {
 	    lastUpdate = 0;
 	    running = true;
 	   	
@@ -32,8 +41,9 @@ class FlipSnake : public ScreenProgram {
 	    }
 
 	    foodPos = random(PANEL_WIDTH) << 8 | random(PANEL_HEIGHT);
+		sign->clear();
 	    sign->putPixel(foodPos >> 8, foodPos & 0xFF, WHITE);
-    }
+	}
 
     void start() {
 		sign->clear();
@@ -48,16 +58,21 @@ class FlipSnake : public ScreenProgram {
 
     void loop(char* input) {
     	if(running) {
-	    	if(input != NULL && strcmp("up", input) == 0)
-	    		direction = up;
-	    	if(input != NULL && strcmp("down", input) == 0)
-	    		direction = down;
-	    	if(input != NULL && strcmp("left", input) == 0)
-	    		direction = left;
-	    	if(input != NULL && strcmp("right", input) == 0)
-	    		direction = right;
+	    	if(input != NULL && strcmp("up", input) == 0 && (inputQueue.empty() ? direction != down : inputQueue.back() != down))
+	    		inputQueue.push(up);
+	    	if(input != NULL && strcmp("down", input) == 0 && (inputQueue.empty() ? direction != up : inputQueue.back() != up))
+	    		inputQueue.push(down);
+	    	if(input != NULL && strcmp("left", input) == 0 && (inputQueue.empty() ? direction != right : inputQueue.back() != right))
+	    		inputQueue.push(left);
+	    	if(input != NULL && strcmp("right", input) == 0 && (inputQueue.empty() ? direction != left : inputQueue.back() != left))
+	    		inputQueue.push(right);
 
 	    	if(millis()-lastUpdate > 100-length) {
+				if(!inputQueue.empty()) {
+					direction = inputQueue.front();
+					inputQueue.pop();
+				}
+
 		    	lastUpdate = millis();
 				move();
 				if(gotfood()) {
@@ -78,6 +93,10 @@ class FlipSnake : public ScreenProgram {
 				sign->flip();
 	    	}
     	}
+		else {
+			if(input != NULL)
+				reset();
+		}
     }
 
     void move() {
@@ -102,7 +121,7 @@ class FlipSnake : public ScreenProgram {
     			if(x < 0) x+= PANEL_WIDTH;
     			break;
     	}
-    	pos = x << 8 | y & 0xFF;
+    	pos = x << 8 | (y & 0xFF);
 
 
     	sign->putPixel(body[length-1] >> 8, body[length-1] & 0xFF, BLACK);

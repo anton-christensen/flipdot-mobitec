@@ -1,6 +1,8 @@
 #ifndef __SCREEN_PROGRAM__
 #define __SCREEN_PROGRAM__
 
+#include "flipscreen.h"
+
 class ScreenProgram {
   public:
     ScreenProgram(FlipScreen* _sign) { sign = _sign; }

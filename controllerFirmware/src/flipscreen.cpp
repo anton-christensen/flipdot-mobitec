@@ -7,13 +7,14 @@ int FlipScreen::index_to_bitpattern(int index) {
 void FlipScreen::_digitalWrite(unsigned char pin, unsigned char state) {
   if(this->gpiostate[pin] == state) return;
   this->gpiostate[pin] = state;
-  io->digitalWrite(pin, state);
+  io->DigitalWrite(pin, state);
 }
 
 FlipScreen::FlipScreen(IOController* _io) {
   font1 = new Font(10,18, (const uint16_t*)font_terminus_10x12);
   font2 = new Font(  4, 6, (const uint16_t*)font_tom_thumb_4x6);
-  font  = font1;
+  font  = font2;
+
   this->io = _io;
 
   // fill fast index-map
@@ -27,17 +28,17 @@ FlipScreen::FlipScreen(IOController* _io) {
   }
 
   // set control pins to output
-  io->pinMode(this->color_pin, OUTPUT);
+  io->PinMode(this->color_pin, OUTPUT);
   for(int i = 0; i < 4; i++) {
-    io->pinMode(this->panel_triggers[i], OUTPUT);
+    io->PinMode(this->panel_triggers[i], OUTPUT);
   }
   for(int i = 0; i < 5; i++) {
-    io->pinMode(this->row_addr_pins[i], OUTPUT);
-    io->pinMode(this->col_addr_pins[i], OUTPUT);
+    io->PinMode(this->row_addr_pins[i], OUTPUT);
+    io->PinMode(this->col_addr_pins[i], OUTPUT);
   }
 
-  io->pinMode(backlight_pin, OUTPUT);
-  io->digitalWrite(backlight_pin, backlight_state);
+  // io->pinMode(backlight_pin, OUTPUT);
+  // io->digitalWrite(backlight_pin, backlight_state);
 
   // clear the screen
   for(int x = 0; x < PANEL_WIDTH; x++) {
@@ -48,10 +49,27 @@ FlipScreen::FlipScreen(IOController* _io) {
   }
 }
 
-void FlipScreen::flip() {
-  for(int x = 0; x < PANEL_WIDTH; x++) {
-    for(int y = 0; y < PANEL_HEIGHT; y++) {
-      _setDot(x,y,screenBuffer[x][y]);
+void FlipScreen::flip(unsigned long transitionTime, bool longForcing) {
+  std::vector<std::tuple<int, int>> changes;
+  for(int y = 0; y < PANEL_HEIGHT; y++) {
+    for(int x = 0; x < PANEL_WIDTH; x++) {
+      // _setDot(x,y,screenBuffer[x][y]);
+      if(screenState[x][y] != screenBuffer[x][y]) {
+        changes.push_back(std::make_tuple(x,y));
+      }
+    }
+  }
+  unsigned long nDots = changes.size();
+  if(nDots == 0) return;
+
+  std::random_shuffle ( changes.begin(), changes.end() );
+  unsigned long lastFlip = 0;
+  unsigned long delayTime = transitionTime / nDots;
+  for(std::tuple<int,int> coord : changes) {
+    _setDot(std::get<0>(coord), std::get<1>(coord), screenBuffer[std::get<0>(coord)][std::get<1>(coord)], longForcing);
+    if(delayTime != 0 && millis() - lastFlip >= delayTime) {
+      lastFlip = millis();
+      delay(delayTime);
     }
   }
 }
@@ -59,14 +77,14 @@ void FlipScreen::flip() {
 void FlipScreen::putPixel(unsigned int x, unsigned int y, unsigned char color, unsigned char* altBuffer) {
   if(altBuffer == NULL) {
     if(x < 0 || y < 0 || x >= PANEL_WIDTH || y >= PANEL_HEIGHT) return;
-    screenBuffer[x][y] = color;
+    screenBuffer[x][y] = (color == TOGGLE ? !screenBuffer[x][y] : color);
   }
   else {
     if(y < 0 || y > PANEL_HEIGHT) return;
-    altBuffer[y+x*PANEL_HEIGHT] = color;
+    altBuffer[y+x*PANEL_HEIGHT] =  (color == TOGGLE ? !altBuffer[y+x*PANEL_HEIGHT] : color);
   }
 }
-void FlipScreen::_setDot(unsigned int x, unsigned int y, unsigned char color) {
+void FlipScreen::_setDot(unsigned int x, unsigned int y, unsigned char color, bool longForcing) {
   if(x < 0 || y < 0 || x >= PANEL_WIDTH || y >= PANEL_HEIGHT || color > 1 || this->screenState[x][y] == color) return;
   this->screenState[x][y] = color;
 
@@ -77,17 +95,21 @@ void FlipScreen::_setDot(unsigned int x, unsigned int y, unsigned char color) {
     _digitalWrite(this->row_addr_pins[i], index_to_bitpattern_map[y]&(1<<i));
     _digitalWrite(this->col_addr_pins[i], index_to_bitpattern_map[x]&(1<<i));
   }
+  
   _digitalWrite(this->color_pin, color);
 
+  delayMicroseconds(10);
   _digitalWrite(this->panel_triggers[panel], HIGH);
-  delayMicroseconds(350); 
+  // delayMicroseconds(color == BLACK ? 300 : 300); 
+  
+  delayMicroseconds(longForcing ? 1000 : color == BLACK ? this->WhiteToBlackMicroseconds : this->blackToWhiteMicroseconds); 
   _digitalWrite(this->panel_triggers[panel], LOW);
   delayMicroseconds(10);
 }
 
 void FlipScreen::fillRect(unsigned int x1, unsigned int x2, unsigned int y1, unsigned int y2, unsigned char color) {
-  for(int y = y1; y <= y2; y++) {
-    for(int x = x1; x <= x2; x++) {
+  for(int y = y1; y < y2; y++) {
+    for(int x = x1; x < x2; x++) {
       this->putPixel(x,y, color);
     }
   }
@@ -101,23 +123,24 @@ void FlipScreen::clear(unsigned char color /*= BLACK*/ ) {
   }
 }
 
-void FlipScreen::putChar(unsigned int x, unsigned int y, char c, unsigned char inverted, unsigned char* altBuffer) {
+void FlipScreen::putChar(unsigned int x, unsigned int y, char c, unsigned char color, unsigned char* altBuffer) {
   for(int _x = 0; _x < font->getCharWidth(c); _x++) {
     for(int _y = 0; _y < font->getCharHeight(); _y++) {
-      if(!inverted)
-        this->putPixel(x+_x, y+_y, (font->getCharBit(c,_x,_y)) ? WHITE : BLACK, altBuffer);
-      else
-        this->putPixel(x+_x, y+_y, (font->getCharBit(c,_x,_y)) ? BLACK : WHITE, altBuffer);
+      if(font->getCharBit(c,_x,_y))
+        this->putPixel(x+_x, y+_y, color, altBuffer);
     }
   }
 }
 
-void FlipScreen::write(const char* str, int x, int y, unsigned char inverted, unsigned char* altBuffer) {
+void FlipScreen::write(const char* str, int x, int y, unsigned char color, unsigned char* altBuffer) {
   int strlen = 0;
   int strwidth = 0;
   unsigned int index = 0;
-  while(str[strlen] != '\0') { strwidth += font->getCharWidth(str[strlen++]); };
-  
+  while(str[strlen] != '\0') { 
+    char c = str[strlen];
+    strlen++;
+    strwidth += font->getCharWidth(c);
+  }
   int _x = x;
   int _y = y;
 
@@ -128,14 +151,15 @@ void FlipScreen::write(const char* str, int x, int y, unsigned char inverted, un
   
   char c;
   while((c = str[index++]) != '\0') {
-    this->putChar(_x, _y, c, inverted, altBuffer);
+    this->putChar(_x, _y, c, color, altBuffer);
     _x += font->getCharWidth(c);
   }
+
 }
 
 void FlipScreen::setBacklight(bool state) {
   backlight_state = state;
-  io->digitalWrite(backlight_pin, state);
+  // io->digitalWrite(backlight_pin, state);
 }
 
 bool FlipScreen::getBacklight() {
@@ -156,7 +180,23 @@ void FlipScreen::redraw() {
       screenState[j][i] = -1;
     }
   }
-  flip();
+  flip(0,true);
+}
+
+void FlipScreen::idle() {
+  static unsigned long lastUpdate = 0;
+  if(millis() - lastUpdate < 1000) return;
+  lastUpdate = millis();
+  // static unsigned char x = 0;
+  // static unsigned char y = 0;
+  unsigned char x = rand() % PANEL_WIDTH;
+  unsigned char y = rand() % PANEL_HEIGHT;
+  unsigned char oldState = this->screenState[x][y];
+  this->screenState[x][y] = -1;
+  this->_setDot(x,y,oldState, true);
+
+  
+  if(++x >= PANEL_WIDTH) { x = 0; y++; }
 }
 
 void FlipScreen::screenToUart() {

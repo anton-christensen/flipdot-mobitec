@@ -8,12 +8,12 @@ class IOController_inbuilt : public IOController {
   public:
     IOController_inbuilt() : IOController() {}
 
-    void digitalWrite(unsigned char pin, unsigned char state) {
+    void DigitalWrite(unsigned char pin, unsigned char state) {
     	digitalWrite(pin, state);
     }
 
-    void pinMode(unsigned char pin, unsigned char mode) {
-    	pinMode(pin, mode);
+    void PinMode(unsigned char pin, unsigned char mode) {
+      pinMode(pin, mode);
     }
 
 

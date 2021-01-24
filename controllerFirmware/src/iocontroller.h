@@ -4,8 +4,8 @@
 class IOController {
   public:
     IOController() {}
-    virtual void digitalWrite(unsigned char pin, unsigned char state) = 0;
-    virtual void pinMode(unsigned char pin, unsigned char mode) = 0;
+    virtual void DigitalWrite(unsigned char pin, unsigned char state) = 0;
+    virtual void PinMode(unsigned char pin, unsigned char mode) = 0;
 };
 
 #endif
